@@ -48,10 +48,10 @@ unsigned char buffer1;
 unsigned char buffer2;
 unsigned char buffer3;
 
-void put(unsigned char an_item){
+void put(unsigned char a_pizza){
 	osSemaphoreWait(space_semaphore, osWaitForever);
 	osMutexWait(x_mutex, osWaitForever);
-	buffer[insertPtr] = an_item;
+	buffer[insertPtr] = a_pizza;
 	buffer0=buffer[0];
 	buffer1=buffer[1];
 	buffer2=buffer[2];
@@ -62,11 +62,11 @@ void put(unsigned char an_item){
 }
 
 unsigned char get(){
-	unsigned int rr = 0;
+	unsigned int removed = 0;
 	osSemaphoreWait(item_semaphore, osWaitForever);
 	osMutexWait(x_mutex, osWaitForever);
 	bufferdata = buffer[removePtr];
-	buffer[removePtr]=rr;
+	buffer[removePtr]=removed;
 	buffer0=buffer[0];
 	buffer1=buffer[1];
 	buffer2=buffer[2];
@@ -81,8 +81,8 @@ int loopcount = 20;
 
 void x_Thread1 (void const *argument) 
 {
-	//producer
-	unsigned char item = 0x41;
+	//cheff
+	unsigned char pizza = 0x41;
 	for(; i<loopcount; i++){
 		put(item++);
 	}
@@ -129,7 +129,7 @@ int main (void)
 	
 	bufferdata_que = osMessageCreate(osMessageQ(bufferdata_que),NULL);					//create the message queue
 	
-	T_x1 = osThreadCreate(osThread(x_Thread1), NULL);//producer
+	T_x1 = osThreadCreate(osThread(x_Thread1), NULL);//cheff
 	T_x2 = osThreadCreate(osThread(x_Thread2), NULL);//consumer
 	T_x3 = osThreadCreate(osThread(x_Thread3), NULL);//another consumer
 	T_x4 = osThreadCreate(osThread(x_Thread4), NULL);//casher
