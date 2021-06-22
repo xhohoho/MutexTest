@@ -58,7 +58,7 @@ void put(unsigned char a_burger){
 }
 
 unsigned char get(){
-	unsigned char removed = 0x20;	//char ' '(space)
+	unsigned int removed = 0;
 	osSemaphoreWait(item_semaphore, osWaitForever);
 	osMutexWait(x_mutex, osWaitForever);
 	bufferdata = buffer[removePtr];
