@@ -58,7 +58,7 @@ void put(unsigned char a_burger){
 }
 
 unsigned char get(){
-	unsigned char removed = 0x20;
+	unsigned char removed = 0x20;	//char ' '(space)
 	osSemaphoreWait(item_semaphore, osWaitForever);
 	osMutexWait(x_mutex, osWaitForever);
 	bufferdata = buffer[removePtr];
@@ -73,13 +73,11 @@ unsigned char get(){
 	return bufferdata;
 }
 
-int loopcount = 20;
-
 void x_Thread1 (void const *argument) 
 {
 	//cheff
-	unsigned char burger = 0x41;
-	for(; i<loopcount; i++){
+	unsigned char burger = 0x41;	//char 'A'
+	for(;;){
 		put(burger++);
 	}
 }
@@ -87,8 +85,8 @@ void x_Thread1 (void const *argument)
 void x_Thread2 (void const *argument) 
 {
 	//consumer (waiter #1)
-	unsigned int data = 0x00;
-	for(; j<loopcount; j++){
+	unsigned int data;
+	for(;;){
 		data = get();
 		//SendChar(data);
 		osMessagePut(bufferdata_que,data,osWaitForever);             //Place a value in the message queue
