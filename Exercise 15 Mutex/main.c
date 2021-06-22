@@ -11,16 +11,13 @@
 void x_Thread1 (void const *argument);
 void x_Thread2 (void const *argument);
 void x_Thread3 (void const *argument);
-void x_Thread4 (void const *argument);
 osThreadDef(x_Thread1, osPriorityNormal, 1, 0);
 osThreadDef(x_Thread2, osPriorityNormal, 1, 0);
 osThreadDef(x_Thread3, osPriorityNormal, 1, 0);
-osThreadDef(x_Thread4, osPriorityNormal, 1, 0);
 
 osThreadId T_x1;
 osThreadId T_x2;
 osThreadId T_x3;
-osThreadId T_x4;
 
 osMessageQId bufferdata_que;
 osMessageQDef (bufferdata_que,0xff,unsigned char);
@@ -30,13 +27,12 @@ osMutexId x_mutex;
 osMutexDef(x_mutex);
 osSemaphoreId item_semaphore;                         // Semaphore ID
 osSemaphoreDef(item_semaphore);                       // Semaphore definition
-osSemaphoreId space_semaphore;                         // Semaphore ID
-osSemaphoreDef(space_semaphore);                       // Semaphore definition
+osSemaphoreId slot_semaphore;                         // Semaphore ID
+osSemaphoreDef(slot_semaphore);                       // Semaphore definition
 
 long int x=0;
 long int i=0;
 long int j=0;
-long int k=0;
 
 const unsigned int N = 4;
 unsigned char buffer[N];
@@ -49,7 +45,7 @@ unsigned char buffer2;
 unsigned char buffer3;
 
 void put(unsigned char a_burger){
-	osSemaphoreWait(space_semaphore, osWaitForever);
+	osSemaphoreWait(slot_semaphore, osWaitForever);
 	osMutexWait(x_mutex, osWaitForever);
 	buffer[insertPtr] = a_burger;
 	buffer0=buffer[0];
@@ -62,7 +58,7 @@ void put(unsigned char a_burger){
 }
 
 unsigned char get(){
-	unsigned int removed = 0;
+	unsigned char removed = 0x20;
 	osSemaphoreWait(item_semaphore, osWaitForever);
 	osMutexWait(x_mutex, osWaitForever);
 	bufferdata = buffer[removePtr];
@@ -73,7 +69,7 @@ unsigned char get(){
 	buffer3=buffer[3];
 	removePtr = (removePtr + 1) % N;
 	osMutexRelease(x_mutex);
-	osSemaphoreRelease(space_semaphore);
+	osSemaphoreRelease(slot_semaphore);
 	return bufferdata;
 }
 
@@ -99,18 +95,7 @@ void x_Thread2 (void const *argument)
 	}
 }
 
-void x_Thread3 (void const *argument) 
-{
-	//consumer (waiter #2)
-	unsigned int data2 = 0x00;
-	for(; k<loopcount; k++){
-		data2 = get();
-		//SendChar(data2);
-		osMessagePut(bufferdata_que,data2,osWaitForever);             //Place a value in the message queue
-	}
-}
-
-void x_Thread4(void const *argument)
+void x_Thread3(void const *argument)
 {
 	//cashier
 	//osMessagePut(bufferdata_que,0x30,osWaitForever);
@@ -125,15 +110,14 @@ int main (void)
 	osKernelInitialize ();                    // initialize CMSIS-RTOS
 	USART1_Init();
 	item_semaphore = osSemaphoreCreate(osSemaphore(item_semaphore), 0);
-	space_semaphore = osSemaphoreCreate(osSemaphore(space_semaphore), N);
+	slot_semaphore = osSemaphoreCreate(osSemaphore(slot_semaphore), N);
 	x_mutex = osMutexCreate(osMutex(x_mutex));	
 	
 	bufferdata_que = osMessageCreate(osMessageQ(bufferdata_que),NULL);					//create the message queue
 	
 	T_x1 = osThreadCreate(osThread(x_Thread1), NULL);//chef
 	T_x2 = osThreadCreate(osThread(x_Thread2), NULL);//waiter1
-	T_x3 = osThreadCreate(osThread(x_Thread3), NULL);//waiter2
-	T_x4 = osThreadCreate(osThread(x_Thread4), NULL);//casher
+	T_x3 = osThreadCreate(osThread(x_Thread3), NULL);//casher
  
 	osKernelStart ();                         // start thread execution 
 }
